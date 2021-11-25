@@ -5,8 +5,7 @@ import scrapy
 class QuoteSpider(scrapy.Spider):
     name = 'quotes' # indentifies the spider
     start_urls = [
-        'http://quotes.toscrape.com/page/1/',
-        'http://quotes.toscrape.com/page/2/',
+        'http://quotes.toscrape.com'
     ]
 
     def parse(self, response):
@@ -16,3 +15,8 @@ class QuoteSpider(scrapy.Spider):
                 'author': quote.css('small.author::text').get(),
                 'tags': quote.css('div.tags a.tag::text').getall(),
             }
+
+        next_page = response.css('li.next a::attr(href)').get()
+        if next_page is not None:
+            next_page = response.urljoin(next_page)
+            yield scrapy.Request(next_page, callback=self.parse)
